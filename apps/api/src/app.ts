@@ -103,8 +103,14 @@ export function buildApp(opts: BuildAppOptions = {}): { app: Express; ctx: AppCo
   app.use('/api/v1', api);
   app.use('/api', (req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'مسیر API یافت نشد (از /api/v1 استفاده کنید)' } }));
 
-  // Optional: serve the built dashboard for single-server deployments
+  // serve the embeddable HTML widget — BEFORE the dashboard SPA fallback
   const here = dirname(fileURLToPath(import.meta.url));
+  const widgetDir = join(here, '../../../integrations/html');
+  if (existsSync(join(widgetDir, 'danesh-widget.js'))) {
+    app.use('/widget', express.static(widgetDir));
+  }
+
+  // Optional: serve the built dashboard for single-server deployments
   const candidates = [
     join(here, '../../dashboard/dist'),
     join(here, '../../../dashboard/dist'),
@@ -113,15 +119,9 @@ export function buildApp(opts: BuildAppOptions = {}): { app: Express; ctx: AppCo
   if (dashboardDist) {
     app.use(express.static(dashboardDist));
     app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api')) return next();
+      if (req.path.startsWith('/api') || req.path.startsWith('/widget')) return next();
       res.sendFile(join(dashboardDist, 'index.html'));
     });
-  }
-
-  // serve the embeddable HTML widget for connector deployments
-  const widgetDir = join(here, '../../../integrations/html');
-  if (existsSync(join(widgetDir, 'danesh-widget.js'))) {
-    app.use('/widget', express.static(widgetDir));
   }
 
   app.use(errorHandler(logger));

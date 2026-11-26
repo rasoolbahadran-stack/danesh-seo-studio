@@ -142,6 +142,7 @@
 | ورک‌اسپیس‌های مستقل + جدا بودن داده | COMPLETED | Integration isolation (404) | ✅ |
 | نقش‌ها owner/admin/editor/viewer | COMPLETED | middleware + Integration | ✅ |
 | WordPress plugin (قرارداد REST + push) | COMPLETED | Unit connectors (mock) | ✅ |
+| تنظیمات اتصال سایت در پنل (کلیدها رمزنگاری + تست واقعی) | COMPLETED | Integration (masked + test) | ✅ |
 | Astro / Next.js integration | COMPLETED | کد + README | بدون تست E2E روی پروژه واقعی Astro/Next — PARTIALLY در عملکرد زنده |
 | HTML Widget + share token | COMPLETED | Integration (public endpoint) | ✅ |
 | Webhook امضاشده HMAC | COMPLETED | Unit | ✅ |
