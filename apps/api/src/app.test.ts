@@ -466,3 +466,33 @@ describe('E2E journey (user story end-to-end)', () => {
     expect(reports.body.reports.some((r: { type: string }) => r.type === 'audit')).toBe(true);
   });
 });
+
+describe('public share endpoint (widgets)', () => {
+  it('serves score with valid share token and rejects bad tokens', async () => {
+    const email = `share-${Date.now()}@test.ir`;
+    const reg = await request(app).post('/api/v1/auth/register').send({ email, password: 'Str0ngPass!', name: 'Share' });
+    const token = reg.body.token;
+    const ws = await createWorkspace(token, 'ورک‌اسپیس شیر');
+    const art = await request(app).post(`/api/v1/workspaces/${ws}/articles`).set(auth(token)).send({ title: 't', primaryKeyword: 'قهوه ترک', contentHtml: GOOD_HTML });
+    await request(app).post(`/api/v1/workspaces/${ws}/articles/${art.body.article.id}/analyze`).set(auth(token));
+    const share = await request(app).post(`/api/v1/workspaces/${ws}/settings/share-token`).set(auth(token));
+    expect(share.status).toBe(200);
+    const { shareToken: st } = share.body;
+
+    // valid token → public score (no auth header at all)
+    const ok = await request(app).get(`/api/v1/public/workspaces/${ws}/articles/${art.body.article.id}/report?token=${st}`);
+    expect(ok.status).toBe(200);
+    expect(typeof ok.body.score).toBe('number');
+    expect(ok.body.score).toBeGreaterThan(0);
+
+    // wrong token → 403
+    const bad = await request(app).get(`/api/v1/public/workspaces/${ws}/articles/${art.body.article.id}/report?token=wrong`);
+    expect(bad.status).toBe(403);
+
+    // no analysis yet → clear NO_REPORT (no fake data)
+    const art2 = await request(app).post(`/api/v1/workspaces/${ws}/articles`).set(auth(token)).send({ title: 't2', contentHtml: '<p>x</p>' });
+    const none = await request(app).get(`/api/v1/public/workspaces/${ws}/articles/${art2.body.article.id}/report?token=${st}`);
+    expect(none.status).toBe(404);
+    expect(none.body.error.code).toBe('NO_REPORT');
+  });
+});

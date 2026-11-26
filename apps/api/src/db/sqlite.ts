@@ -1,10 +1,17 @@
 /**
  * SQLite storage via the built-in node:sqlite (Node >= 22.13) — no native
  * compilation required. Schema is created idempotently at startup.
+ *
+ * NOTE: loaded via createRequire at runtime because bundlers (esbuild) may
+ * rewrite the `node:sqlite` specifier to a bare package name.
  */
-import { DatabaseSync } from 'node:sqlite';
+import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const nodeRequire = createRequire(import.meta.url);
+const { DatabaseSync } = nodeRequire('node:sqlite') as typeof import('node:sqlite');
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS users (

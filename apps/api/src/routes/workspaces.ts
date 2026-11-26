@@ -110,6 +110,19 @@ export function workspaceRoutes(ctx: AppContext) {
     res.json(await ctx.keywords.testSerp(req.params.workspaceId));
   }));
 
+  // ---- share token (for public widgets) ----
+  r.post('/:workspaceId/settings/share-token', workspaceRequired(ctx.repos, 'admin'), asyncHandler(async (req, res) => {
+    const { randomBytes } = await import('node:crypto');
+    const shareToken = randomBytes(24).toString('base64url');
+    let settings: Record<string, unknown> = {};
+    const ws = ctx.repos.findWorkspace(req.params.workspaceId);
+    try { settings = ws ? (JSON.parse(ws.settings_json) as Record<string, unknown>) : {}; } catch { /* empty */ }
+    settings.shareToken = shareToken;
+    ctx.repos.updateWorkspace(req.params.workspaceId, { settings_json: JSON.stringify(settings) });
+    ctx.repos.logActivity(req.params.workspaceId, req.user!.id, 'settings.share-token.rotate', 'settings', null, {}, req.ip ?? '');
+    res.json({ shareToken, note: 'این توکن فقط برای widget عمومی امتیاز سئو استفاده می‌شود؛ هر زمان با یک درخواست جدید می‌چرخانید.' });
+  }));
+
   r.post('/:workspaceId/settings/serp', workspaceRequired(ctx.repos, 'admin'), asyncHandler(async (req, res) => {
     const body = z.object({
       kind: z.enum(['dataforseo', 'serpapi']),
