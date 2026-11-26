@@ -30,7 +30,7 @@ Danesh SEO Studio قابلیت‌های کاربردی ابزارهایی مثل
 
 ## پیش‌نمایش آنلاین (دمو)
 
-- **Frontend demo (GitHub Pages)**: آدرس پس از انتشار در اینجا ثبت می‌شود → https://rasoolbahadran-stack.github.io/danesh-seo-studio/
+- **Frontend demo (GitHub Pages) — زنده و تأییدشده**: https://rasoolbahadran-stack.github.io/danesh-seo-studio/
 - نسخه Pages فقط فرانت‌اند است و **صراحتاً دمو** معرفی می‌شود؛ برای عملکرد کامل باید Backend را اجرا کنید و آدرس API را در صفحه ورود وارد کنید.
 
 ## معماری در یک نگاه
@@ -68,7 +68,7 @@ npm run dev:api & npm run dev:dashboard
 ## تست‌ها
 
 ```bash
-npm test        # ۷۹ تست: Unit پکیج‌ها + Integration/E2E کل API
+npm test        # ۹۱ تست: Unit پکیج‌ها + Integration/E2E کل API
 ```
 
 ## امنیت
