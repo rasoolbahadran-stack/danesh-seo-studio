@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build
+      - run: npm test
+      - name: API production smoke
+        run: |
+          (PORT=4123 DATABASE_PATH=/tmp/ci-smoke.db JWT_SECRET=ci-smoke-secret-1234567890 node apps/api/dist/index.js > smoke.log 2>&1 &)
+          sleep 2
+          curl -sf http://127.0.0.1:4123/api/v1/health | tee health.json
+          grep -q '"status":"ok"' health.json
+          pkill -f "node apps/api/dist/index.js" || true
