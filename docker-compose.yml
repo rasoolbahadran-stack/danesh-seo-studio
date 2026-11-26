@@ -1,0 +1,16 @@
+services:
+  danesh-seo-studio:
+    build: .
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/data/danesh-seo-studio.db
+    volumes:
+      - danesh-data:/data
+    restart: unless-stopped
+
+volumes:
+  danesh-data:

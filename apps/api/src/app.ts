@@ -116,6 +116,12 @@ export function buildApp(opts: BuildAppOptions = {}): { app: Express; ctx: AppCo
     });
   }
 
+  // serve the embeddable HTML widget for connector deployments
+  const widgetDir = join(here, '../../../integrations/html');
+  if (existsSync(join(widgetDir, 'danesh-widget.js'))) {
+    app.use('/widget', express.static(widgetDir));
+  }
+
   app.use(errorHandler(logger));
 
   // keep the workspaceRequired import referenced for future nested routers
