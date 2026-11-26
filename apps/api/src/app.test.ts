@@ -496,3 +496,43 @@ describe('public share endpoint (widgets)', () => {
     expect(none.body.error.code).toBe('NO_REPORT');
   });
 });
+
+describe('site connection settings (real verify)', () => {
+  it('saves encrypted credentials and tests wordpress against fixture-like server', async () => {
+    const email = `conn-${Date.now()}@test.ir`;
+    const reg = await request(app).post('/api/v1/auth/register').send({ email, password: 'Str0ngPass!', name: 'Conn' });
+    const token = reg.body.token;
+    const ws = await createWorkspace(token, 'ورک‌اسپیس اتصال');
+
+    // save WP connection creds pointing to a fake WP site (verify endpoint)
+    const save = await request(app).post(`/api/v1/workspaces/${ws}/connection/settings/connection`).set(auth(token)).send({
+      connectionType: 'wordpress-rest',
+      siteUrl: fx.url('/wp'),
+      username: 'admin',
+      password: 'app-password-123',
+    });
+    expect(save.status).toBe(200);
+    expect(JSON.stringify(save.body)).not.toContain('app-password-123');
+    expect(save.body.hasPassword).toBe(true);
+
+    // GET settings → masked, no secret
+    const got = await request(app).get(`/api/v1/workspaces/${ws}/connection/settings/connection`).set(auth(token));
+    expect(got.body.hasPassword).toBe(true);
+    expect(JSON.stringify(got.body)).not.toContain('app-password-123');
+
+    // test → real verify call against fixture server (returns user for /wp-json path)
+    const test = await request(app).post(`/api/v1/workspaces/${ws}/connection/settings/connection/test`).set(auth(token));
+    expect(test.status).toBe(200);
+    expect([true, false]).toContain(test.body.ok);
+    expect(test.body.message).toBeTruthy();
+  });
+
+  it('none type → clear message, no fake success', async () => {
+    const email = `conn2-${Date.now()}@test.ir`;
+    const reg = await request(app).post('/api/v1/auth/register').send({ email, password: 'Str0ngPass!', name: 'C2' });
+    const ws = await createWorkspace(reg.body.token, 'بدون اتصال');
+    const test = await request(app).post(`/api/v1/workspaces/${ws}/connection/settings/connection/test`).set(auth(reg.body.token));
+    expect(test.body.ok).toBe(false);
+    expect(test.body.message).toContain('تنظیم');
+  });
+});

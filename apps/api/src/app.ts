@@ -23,6 +23,7 @@ import { workspaceRoutes } from './routes/workspaces.js';
 import { articleRoutes } from './routes/articles.js';
 import { keywordRoutes } from './routes/keywords.js';
 import { moduleRoutes } from './routes/modules.js';
+import { connectionRoutes } from './routes/connection.js';
 import { publicRoutes } from './routes/public.js';
 import type { AppContext } from './routes/context.js';
 
@@ -96,6 +97,7 @@ export function buildApp(opts: BuildAppOptions = {}): { app: Express; ctx: AppCo
   api.use('/workspaces', apiLimiter, authRequired(cfg.JWT_SECRET), workspaceRoutes(ctx));
   api.use('/workspaces/:workspaceId/articles', authRequired(cfg.JWT_SECRET), articleRoutes(ctx));
   api.use('/workspaces/:workspaceId/keywords', authRequired(cfg.JWT_SECRET), keywordRoutes(ctx));
+  api.use('/workspaces/:workspaceId/connection', authRequired(cfg.JWT_SECRET), connectionRoutes(ctx));
   api.use('/workspaces/:workspaceId', authRequired(cfg.JWT_SECRET), moduleRoutes(ctx));
 
   app.use('/api/v1', api);

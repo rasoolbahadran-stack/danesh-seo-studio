@@ -53,6 +53,7 @@ export function createFixtureServer(): Promise<{ port: number; close: () => Prom
         '/comp1': [COMP1, 'text/html; charset=utf-8'],
         '/comp2': [COMP2, 'text/html; charset=utf-8'],
         '/tech': [TECH_PAGE, 'text/html; charset=utf-8'],
+        '/wp-json/wp/v2/users/me': ['{"id":1,"name":"wp-admin","capabilities":{"edit_posts":true}}', 'application/json'],
         '/noindex': [NOINDEX_PAGE, 'text/html; charset=utf-8'],
       };
       const entry = map[path];

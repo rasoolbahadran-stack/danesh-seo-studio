@@ -100,7 +100,7 @@ function ManageButton({ workspace }: { workspace: Workspace }) {
 
 function SettingsModal({ workspace, onClose }: { workspace: Workspace; onClose: () => void }) {
   const toast = useToast();
-  const [tab, setTab] = useState<'general' | 'weights' | 'ai' | 'serp' | 'members'>('general');
+  const [tab, setTab] = useState<'general' | 'weights' | 'ai' | 'serp' | 'connection' | 'members'>('general');
   const [name, setName] = useState(workspace.name);
   const [domain, setDomain] = useState(workspace.domain);
   const [weights, setWeights] = useState<Record<string, number>>(() => {
@@ -118,6 +118,15 @@ function SettingsModal({ workspace, onClose }: { workspace: Workspace; onClose: 
   const [members, setMembers] = useState<Member[]>([]);
   const [memberEmail, setMemberEmail] = useState('');
   const [memberRole, setMemberRole] = useState('viewer');
+  const [connType, setConnType] = useState<string>('none');
+  const [connSiteUrl, setConnSiteUrl] = useState('');
+  const [connUsername, setConnUsername] = useState('');
+  const [connPassword, setConnPassword] = useState('');
+  const [connApiKey, setConnApiKey] = useState('');
+  const [connWebhookUrl, setConnWebhookUrl] = useState('');
+  const [connWebhookSecret, setConnWebhookSecret] = useState('');
+  const [connTestResult, setConnTestResult] = useState<string | null>(null);
+  const [hasPass, setHasPass] = useState(false);
 
   const base = `/workspaces/${workspace.id}`;
 
@@ -126,10 +135,34 @@ function SettingsModal({ workspace, onClose }: { workspace: Workspace; onClose: 
       try {
         setAiStatus(await api.get<AiStatus>(`${base}/settings/ai`));
         setMembers((await api.get<{ members: Member[] }>(`${base}/members`)).members);
+        const conn = await api.get<{ connectionType: string; siteUrl: string; username: string; webhookUrl: string; hasPassword?: boolean }>(`${base}/connection/settings/connection`);
+        setConnType(conn.connectionType ?? 'none');
+        setConnSiteUrl(conn.siteUrl ?? '');
+        setConnUsername(conn.username ?? '');
+        setConnWebhookUrl(conn.webhookUrl ?? '');
+        setHasPass(Boolean(conn.hasPassword));
       } catch { /* non-admin may get 403 */ }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const saveConnection = async () => {
+    try {
+      const body: Record<string, string> = { connectionType: connType, siteUrl: connSiteUrl, username: connUsername, webhookUrl: connWebhookUrl };
+      if (connPassword) body.password = connPassword;
+      if (connApiKey) body.apiKey = connApiKey;
+      if (connWebhookSecret) body.webhookSecret = connWebhookSecret;
+      await api.post(`${base}/connection/settings/connection`, body);
+      setConnTestResult('✅ ذخیره شد — اکنون «تست اتصال» را بزنید');
+    } catch (err) { setConnTestResult(`خطا: ${(err as Error).message}`); }
+  };
+
+  const testConnection = async () => {
+    try {
+      const r = await api.post<{ ok: boolean; message: string }>(`${base}/connection/settings/connection/test`);
+      setConnTestResult(`${r.ok ? '✅' : '⛔'} ${r.message}`);
+    } catch (err) { setConnTestResult(`خطا: ${(err as Error).message}`); }
+  };
 
   const saveGeneral = async () => {
     try {
@@ -182,7 +215,7 @@ function SettingsModal({ workspace, onClose }: { workspace: Workspace; onClose: 
   };
 
   const tabs: [string, string][] = [
-    ['general', 'عمومی'], ['weights', 'وزن امتیازدهی'], ['ai', 'هوش مصنوعی'], ['serp', 'SERP / داده کلمات'], ['members', 'اعضا'],
+    ['general', 'عمومی'], ['weights', 'وزن امتیازدهی'], ['ai', 'هوش مصنوعی'], ['serp', 'SERP / داده کلمات'], ['connection', 'اتصال به سایت'], ['members', 'اعضا'],
   ];
 
   return (
@@ -262,6 +295,63 @@ function SettingsModal({ workspace, onClose }: { workspace: Workspace; onClose: 
           <p className="muted mt" style={{ fontSize: 12 }}>
             بدون این سرویس، تحلیل SERP و حجم جست‌وجوی واقعی با وضعیت شفاف «تنظیم نشده» پاسخ می‌دهند — هیچ داده ساختگی تولید نمی‌شود.
           </p>
+        </div>
+      )}
+
+      {tab === 'connection' && (
+        <div>
+          <label className="field">نوع اتصال
+            <select className="input" value={connType} onChange={(e) => setConnType(e.target.value)}>
+              <option value="none">— بدون اتصال —</option>
+              <option value="wordpress-rest">WordPress (REST + Application Password)</option>
+              <option value="rest-contract">سایت سفارشی (قرارداد REST)</option>
+              <option value="webhook">فقط Webhook</option>
+            </select>
+          </label>
+          {connType !== 'none' && connType !== 'webhook' && (
+            <>
+              <label className="field">آدرس سایت
+                <input className="input" dir="ltr" placeholder="https://example.ir" value={connSiteUrl} onChange={(e) => setConnSiteUrl(e.target.value)} />
+              </label>
+              {connType === 'wordpress-rest' && (
+                <>
+                  <label className="field">نام کاربری وردپرس
+                    <input className="input" dir="ltr" value={connUsername} onChange={(e) => setConnUsername(e.target.value)} />
+                  </label>
+                  <label className="field">Application Password
+                    <input className="input" dir="ltr" type="password" value={connPassword} onChange={(e) => setConnPassword(e.target.value)} placeholder={hasPass ? '**** ذخیره شده — برای تغییر مقدار جدید وارد کنید' : ''} />
+                  </label>
+                </>
+              )}
+              {connType === 'rest-contract' && (
+                <label className="field">API Key سایت (اختیاری)
+                  <input className="input" dir="ltr" type="password" value={connApiKey} onChange={(e) => setConnApiKey(e.target.value)} />
+                </label>
+              )}
+            </>
+          )}
+          {connType !== 'none' && (
+            <>
+              {connType === 'webhook' && (
+                <>
+                  <label className="field">Webhook URL
+                    <input className="input" dir="ltr" value={connWebhookUrl} onChange={(e) => setConnWebhookUrl(e.target.value)} />
+                  </label>
+                  <label className="field">Webhook Secret
+                    <input className="input" dir="ltr" type="password" value={connWebhookSecret} onChange={(e) => setConnWebhookSecret(e.target.value)} />
+                  </label>
+                </>
+              )}
+              <div className="row">
+                <button className="btn" onClick={saveConnection}>ذخیره اتصال</button>
+                <button className="btn secondary" onClick={testConnection}>تست اتصال (واقعی)</button>
+              </div>
+              {connTestResult && <div className="muted mt">{connTestResult}</div>}
+              <p className="muted mt" style={{ fontSize: 12 }}>
+                اطلاعات اتصال با AES-256-GCM رمزنگاری و در سرور ذخیره می‌شود؛ برای وردپرس، افزونه Connector را روی سایت نصب کنید (integrations/wordpress).
+              </p>
+            </>
+          )}
         </div>
       )}
 

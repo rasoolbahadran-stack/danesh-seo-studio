@@ -118,7 +118,7 @@ CREATE INDEX IF NOT EXISTS idx_reports_workspace ON reports(workspace_id);
 CREATE INDEX IF NOT EXISTS idx_activity_workspace ON activity(workspace_id);
 `;
 
-export function openDatabase(dbPath: string): DatabaseSync {
+export function openDatabase(dbPath: string): InstanceType<typeof DatabaseSync> {
   if (dbPath !== ':memory:') {
     mkdirSync(dirname(dbPath), { recursive: true });
   }
