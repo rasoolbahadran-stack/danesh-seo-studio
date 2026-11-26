@@ -1,0 +1,32 @@
+{
+  "name": "danesh-seo-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Danesh SEO Studio — AI-powered, modular SEO & content optimization platform (Persian-first)",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build:packages && npm run build:api && npm run build:dashboard",
+    "build:packages": "npm run build -w @danesh/seo-engine -w @danesh/content-analyzer -w @danesh/keyword-research -w @danesh/ai-engine -w @danesh/website-connectors",
+    "build:api": "npm run build -w @danesh/api",
+    "build:dashboard": "npm run build -w @danesh/dashboard",
+    "test": "npm run build:packages && vitest run",
+    "dev:api": "npm run dev -w @danesh/api",
+    "dev:dashboard": "npm run dev -w @danesh/dashboard",
+    "start": "npm run start -w @danesh/api"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.4"
+  }
+}

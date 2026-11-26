@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Environment & secrets (never commit real credentials)
+.env
+.env.*
+!.env.example
+
+# Local data (SQLite database, uploads)
+data/
+*.db
+*.db-journal
+*.sqlite
+
+# Logs & coverage
+logs/
+*.log
+coverage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Temp
+tmp/
+*.tsbuildinfo
