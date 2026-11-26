@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { analyzeArticle, type Intent, type SeoReport } from '@danesh/seo-engine';
-import { api, type Article, type Version } from '../api.js';
+import { api, getMode, type Article, type Version } from '../api.js';
 import { useApp } from '../App.js';
 import { CriteriaGrid, ScoreGauge } from '../components/ScoreGauge.js';
 import { GooglePreview, IssueList } from '../components/IssueList.js';
@@ -37,6 +37,7 @@ export default function EditorPage() {
   const [diff, setDiff] = useState<{ result: DiffResult; version: Version } | null>(null);
   const [rightTab, setRightTab] = useState<'issues' | 'keywords' | 'readability' | 'links' | 'meta' | 'preview'>('issues');
   const [aiBusy, setAiBusy] = useState<string | null>(null);
+  const isLocal = getMode() === 'local';
 
   const editorRef = useRef<HTMLDivElement>(null);
   const lastHtmlRef = useRef<string>('');
@@ -384,12 +385,16 @@ export default function EditorPage() {
             <button className="tb-btn" onClick={insertLink}>🔗 لینک</button>
             <button className="tb-btn" onClick={insertImage}>🖼 تصویر</button>
             <span className="tb-sep" />
-            <button className="tb-btn" disabled={aiBusy !== null} onClick={aiSuggestTitles}>{aiBusy === 'suggest-titles' ? '…' : '🤖 عنوان'}</button>
-            <button className="tb-btn" disabled={aiBusy !== null} onClick={aiMeta}>{aiBusy === 'meta-description' ? '…' : '🤖 متا'}</button>
-            <button className="tb-btn" disabled={aiBusy !== null} onClick={() => void aiImproveSelected('rewrite')}>🤖 بازنویسی</button>
-            <button className="tb-btn" disabled={aiBusy !== null} onClick={() => void aiImproveSelected('expand')}>🤖 گسترش</button>
-            <button className="tb-btn" disabled={aiBusy !== null} onClick={() => void aiImproveSelected('readability')}>🤖 خوانایی</button>
-            <button className="tb-btn" disabled={aiBusy !== null} onClick={aiFixGrammar}>🤖 نگارش</button>
+            {!isLocal && (
+              <>
+                <button className="tb-btn" disabled={aiBusy !== null} onClick={aiSuggestTitles}>{aiBusy === 'suggest-titles' ? '…' : '🤖 عنوان'}</button>
+                <button className="tb-btn" disabled={aiBusy !== null} onClick={aiMeta}>{aiBusy === 'meta-description' ? '…' : '🤖 متا'}</button>
+                <button className="tb-btn" disabled={aiBusy !== null} onClick={() => void aiImproveSelected('rewrite')}>🤖 بازنویسی</button>
+                <button className="tb-btn" disabled={aiBusy !== null} onClick={() => void aiImproveSelected('expand')}>🤖 گسترش</button>
+                <button className="tb-btn" disabled={aiBusy !== null} onClick={() => void aiImproveSelected('readability')}>🤖 خوانایی</button>
+                <button className="tb-btn" disabled={aiBusy !== null} onClick={aiFixGrammar}>🤖 نگارش</button>
+              </>
+            )}
             <span className="tb-sep" />
             <button className="tb-btn" onClick={() => setPreviewMode(!previewMode)}>{previewMode ? '✏️ ویرایش' : '👁 پیش‌نمایش'}</button>
           </div>
@@ -411,15 +416,19 @@ export default function EditorPage() {
           <div className="row spread mt muted">
             <span>کلمات: {report?.wordCount ?? 0} | کاراکترها: {report?.charCount ?? 0} | زمان مطالعه: ~{report?.readingTimeMinutes ?? 0} دقیقه</span>
             <span>
-              <button className="btn secondary small" onClick={async () => {
-                if (!workspaceId) return;
-                try {
-                  const res = await api.post<{ score: number; report: SeoReport }>(`/workspaces/${workspaceId}/articles/${article.id}/analyze`);
-                  setServerScore(res.score);
-                  setReport(res.report);
-                  toast('success', `تحلیل کامل سرور: امتیاز ${res.score} (شامل داده رقبا در صورت تنظیم)`);
-                } catch (err) { toast('error', (err as Error).message); }
-              }}>تحلیل کامل سمت سرور</button>
+              {isLocal ? (
+                <span className="badge primary" title="امتیاز زنده با همان موتور سمت سرور، اینجا در مرورگر اجرا می‌شود">امتیاز زنده محلی فعال — AI/سرور خاموش</span>
+              ) : (
+                <button className="btn secondary small" onClick={async () => {
+                  if (!workspaceId) return;
+                  try {
+                    const res = await api.post<{ score: number; report: SeoReport }>(`/workspaces/${workspaceId}/articles/${article.id}/analyze`);
+                    setServerScore(res.score);
+                    setReport(res.report);
+                    toast('success', `تحلیل کامل سرور: امتیاز ${res.score} (شامل داده رقبا در صورت تنظیم)`);
+                  } catch (err) { toast('error', (err as Error).message); }
+                }}>تحلیل کامل سمت سرور</button>
+              )}
             </span>
           </div>
         </div>

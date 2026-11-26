@@ -17,6 +17,12 @@ const EnvSchema = z.object({
   RATE_LIMIT_API_PER_MIN: z.coerce.number().default(300),
   RATE_LIMIT_AUTH_PER_15MIN: z.coerce.number().default(10),
   RATE_LIMIT_AI_PER_MIN: z.coerce.number().default(20),
+  // Easy-access owner account (created automatically on first start)
+  SEED_DEFAULT_ADMIN: z.enum(['true', 'false']).default('true'),
+  SEED_ADMIN_NAME: z.string().default('رسول بهادران'),
+  SEED_ADMIN_EMAIL: z.string().default('admin@danesh.local'),
+  SEED_ADMIN_PASSWORD: z.string().default('1234'),
+  SEED_WORKSPACE_NAME: z.string().default('سایت من'),
 });
 
 export interface AppConfig extends z.infer<typeof EnvSchema> {

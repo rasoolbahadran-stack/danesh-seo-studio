@@ -1,6 +1,6 @@
 /** Workspaces (multi-site management) + settings: weights, AI provider, SERP, members. */
 import React, { useEffect, useState } from 'react';
-import { api, type Workspace, type AiStatus } from '../api.js';
+import { api, getMode, type Workspace, type AiStatus } from '../api.js';
 import { useApp } from '../App.js';
 import { EmptyState, Modal, useToast } from '../components/ui.js';
 import { DEFAULT_WEIGHTS, CRITERION_LABELS } from '@danesh/seo-engine';
@@ -214,12 +214,21 @@ function SettingsModal({ workspace, onClose }: { workspace: Workspace; onClose: 
     } catch (err) { toast('error', (err as Error).message); }
   };
 
-  const tabs: [string, string][] = [
-    ['general', 'عمومی'], ['weights', 'وزن امتیازدهی'], ['ai', 'هوش مصنوعی'], ['serp', 'SERP / داده کلمات'], ['connection', 'اتصال به سایت'], ['members', 'اعضا'],
-  ];
+  const isLocal = getMode() === 'local';
+  const tabs: [string, string][] = isLocal
+    ? [['general', 'عمومی'], ['weights', 'وزن امتیازدهی']]
+    : [
+        ['general', 'عمومی'], ['weights', 'وزن امتیازدهی'], ['ai', 'هوش مصنوعی'],
+        ['serp', 'SERP / داده کلمات'], ['connection', 'اتصال به سایت'], ['members', 'اعضا'],
+      ];
 
   return (
     <Modal title={`تنظیمات: ${workspace.name}`} onClose={onClose}>
+      {isLocal && (
+        <div className="demo-banner mb">
+          حالت محلی: داده‌ها فقط در مرورگر شما ذخیره می‌شود و تنظیمات AI/SERP/اتصال سایت/اعضا به Backend نیاز دارند. تحلیل زنده، ویرایشگر و تحقیق کلمات کامل کار می‌کنند.
+        </div>
+      )}
       <div className="row mb">
         {tabs.map(([k, label]) => (
           <button key={k} className={`btn small ${tab === k ? '' : 'secondary'}`} onClick={() => setTab(k as typeof tab)}>{label}</button>

@@ -1,7 +1,7 @@
 /** App shell: router, auth state, workspace context, sidebar. */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { api, getToken, setToken, type User, type Workspace } from './api.js';
+import { api, getApiMode, getToken, setToken, type User, type Workspace } from './api.js';
 import { ToastProvider, useToast } from './components/ui.js';
 import LoginPage from './pages/LoginPage.js';
 import DashboardPage from './pages/DashboardPage.js';
@@ -56,6 +56,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className="topbar">
           <h1>خوش آمدید، {user?.name}</h1>
           <div className="ws-switcher">
+            {getApiMode() === 'local' && <span className="badge primary" title="همه داده‌ها فقط در مرورگر شما">حالت محلی</span>}
             <span className="muted">وب‌سایت فعال:</span>
             <select className="ws-select" value={workspaceId ?? ''} onChange={(e) => setWorkspaceId(e.target.value || null)}>
               <option value="">— انتخاب وب‌سایت —</option>
@@ -81,7 +82,7 @@ function InnerApp() {
   const toast = useToast();
 
   const refresh = useCallback(async () => {
-    if (!getToken()) {
+    if (getApiMode() !== 'local' && !getToken()) {
       setUser(null);
       setBooting(false);
       return;

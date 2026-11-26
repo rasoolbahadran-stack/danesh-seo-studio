@@ -177,8 +177,24 @@
 
 ## جمع‌بندی وضعیت (تعداد واقعی ردیف‌های جدول بالا)
 
+<<<<<<< Updated upstream
 - **COMPLETED: ۹۵ مورد**
 - **PARTIALLY COMPLETED: ۲ مورد** (Astro/Next تست زنده روی پروژه نمونه؛ Crawl چندصفحه‌ای کامل)
 - **BLOCKED (نیازمند کلید سرویس پولی): ۳ مورد** (حجم جست‌وجو واقعی، سختی واقعی، SERP واقعی — providerها آماده اتصال هستند و بدون کلید وضعیت شفاف not_configured برمی‌گردانند)
 - **TODO: ۱ مورد** (E2E مرورگر با Playwright — ROADMAP)
 - **FAILED: ۰**
+=======
+- **COMPLETED**: ۶۱ مورد
+- **PARTIALLY COMPLETED**: ۲ مورد (Astro/Next تست زنده روی پروژه نمونه؛ Crawl چندصفحه‌ای کامل)
+- **BLOCKED (نیازمند کلید سرویس پولی/شبکه)**: ۲ مورد (حجم جست‌وجو و سختی واقعی از DataForSEO؛ SERP واقعی — providerها آماده اتصال هستند)
+- **FAILED**: ۰
+
+## ۱۵. دسترسی آسان مالک (v0.1.1)
+
+| قابلیت | شرح وظیفه | اولویت | وضعیت | روش آزمایش | نتیجه آزمایش |
+|---|---|---|---|---|---|
+| حساب ادمین پیش‌فرض | seed خودکار رسول بهادران/1234 + «سایت من» | Critical | COMPLETED | Integration: login بدون ثبت‌نام | ✅ ۳ تست (idempotent + تغییر رمز) |
+| تغییر رمز از خود اکانت | PATCH /auth/me/password | High | COMPLETED | Integration: old fail/new ok | ✅ |
+| حالت محلی بدون سرور | کل داشبورد در مرورگر با localStorage + موتورهای واقعی | Critical | COMPLETED | Unit: ۷ تست (seed/analyze/brief/keywords/versions/audit/unsupported شفاف) | ✅ |
+| ورود یک‌کلیکی در UI | دو دکمه سریع در صفحه ورود | High | COMPLETED | build + typecheck + دستی | ✅ |
+>>>>>>> Stashed changes
