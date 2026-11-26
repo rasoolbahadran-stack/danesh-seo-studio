@@ -62,7 +62,7 @@ export function workspaceRoutes(ctx: AppContext) {
   }));
 
   r.delete('/:workspaceId', workspaceRequired(ctx.repos, 'owner'), asyncHandler(async (req, res) => {
-    ctx.repos.updateWorkspace(req.params.workspaceId, { archived: true });
+    ctx.repos.updateWorkspace(req.params.workspaceId, { archived: 1 });
     ctx.repos.logActivity(req.params.workspaceId, req.user!.id, 'workspace.archive', 'workspace', req.params.workspaceId, {}, req.ip ?? '');
     res.json({ ok: true, message: 'ورک‌اسپیس آرشیو شد' });
   }));

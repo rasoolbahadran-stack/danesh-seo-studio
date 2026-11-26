@@ -347,16 +347,16 @@ describe('technical SEO with local fixtures', () => {
     expect(report.h1Count).toBe(1);
     expect(report.viewport).toContain('width=device-width');
     expect(report.images.missingAlt).toBe(1);
-    expect(report.issues.some((i: { code: string }) => i.code === 'http-status-ok' && i.priority === 'passed')).toBe(true);
+    expect(report.issues.some((i: { code: string; priority?: string }) => i.code === 'http-status-ok' && i.priority === 'passed')).toBe(true);
     expect(report.coreWebVitals.status).toBe('not_available');
   });
 
   it('flags noindex and missing meta', async () => {
     const res = await request(app).post(`/api/v1/workspaces/${ws}/technical`).set(auth(token)).send({ url: fx.url('/noindex') });
     const critical = res.body.report.issues.filter((i: { priority: string }) => i.priority === 'critical');
-    expect(critical.some((i: { code: string }) => i.code === 'noindex')).toBe(true);
+    expect(critical.some((i: { code: string; priority?: string }) => i.code === 'noindex')).toBe(true);
     // meta description missing → high priority
-    expect(res.body.report.issues.some((i: { code: string; priority: string }) => i.code === 'meta-missing' && i.priority === 'high')).toBe(true);
+    expect(res.body.report.issues.some((i: { code: string; priority?: string }) => i.code === 'meta-missing' && i.priority === 'high')).toBe(true);
   });
 });
 

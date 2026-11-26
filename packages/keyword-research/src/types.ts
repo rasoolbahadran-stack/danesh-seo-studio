@@ -53,4 +53,5 @@ export interface VolumeReport {
   keyword: string;
   volumes: { keyword: string; monthlySearches: number | null; competition?: string }[];
   message?: string;
+  howToEnable?: string;
 }

@@ -40,10 +40,10 @@ export class Repos {
     return row;
   }
   findUserByEmail(email: string): UserRow | null {
-    return this.db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase()) as UserRow | null ?? null;
+    return this.db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase()) as unknown as UserRow | null ?? null;
   }
   findUserById(id: string): UserRow | null {
-    return this.db.prepare('SELECT * FROM users WHERE id = ?').get(id) as UserRow | null ?? null;
+    return this.db.prepare('SELECT * FROM users WHERE id = ?').get(id) as unknown as UserRow | null ?? null;
   }
 
   // ---------- workspaces & members ----------
@@ -64,10 +64,10 @@ export class Repos {
   listWorkspacesForUser(userId: string): WorkspaceRow[] {
     return this.db.prepare(`SELECT w.* FROM workspaces w
       JOIN workspace_members m ON m.workspace_id = w.id
-      WHERE m.user_id = ? AND w.archived = 0 ORDER BY w.created_at DESC`).all(userId) as WorkspaceRow[];
+      WHERE m.user_id = ? AND w.archived = 0 ORDER BY w.created_at DESC`).all(userId) as unknown as WorkspaceRow[];
   }
   findWorkspace(id: string): WorkspaceRow | null {
-    return this.db.prepare('SELECT * FROM workspaces WHERE id = ? AND archived = 0').get(id) as WorkspaceRow | null ?? null;
+    return this.db.prepare('SELECT * FROM workspaces WHERE id = ? AND archived = 0').get(id) as unknown as WorkspaceRow | null ?? null;
   }
   updateWorkspace(id: string, fields: Partial<Pick<WorkspaceRow, 'name' | 'domain' | 'lang' | 'cms' | 'connection_type' | 'connection_json' | 'weights_json' | 'settings_json' | 'archived'>>) {
     const sets: string[] = [];
@@ -79,7 +79,7 @@ export class Repos {
     }
     if (sets.length === 0) return;
     vals.push(id);
-    this.db.prepare(`UPDATE workspaces SET ${sets.join(', ')} WHERE id = ?`).run(...vals);
+    this.db.prepare(`UPDATE workspaces SET ${sets.join(', ')} WHERE id = ?`).run(...(vals as never[]));
   }
   memberRole(workspaceId: string, userId: string): string | null {
     const r = this.db.prepare('SELECT role FROM workspace_members WHERE workspace_id = ? AND user_id = ?')
@@ -121,7 +121,7 @@ export class Repos {
   }
   findArticle(workspaceId: string, id: string): ArticleRow | null {
     return this.db.prepare('SELECT * FROM articles WHERE id = ? AND workspace_id = ?')
-      .get(id, workspaceId) as ArticleRow | null ?? null;
+      .get(id, workspaceId) as unknown as ArticleRow | null ?? null;
   }
   listArticles(workspaceId: string, opts: { status?: string; limit?: number; offset?: number } = {}) {
     const { status, limit = 100, offset = 0 } = opts;
@@ -131,7 +131,7 @@ export class Repos {
     const countRow = status
       ? this.db.prepare('SELECT COUNT(*) as c FROM articles WHERE workspace_id = ? AND status = ?').get(workspaceId, status) as { c: number }
       : this.db.prepare('SELECT COUNT(*) as c FROM articles WHERE workspace_id = ?').get(workspaceId) as { c: number };
-    return { rows: rows as ArticleRow[], total: countRow.c };
+    return { rows: rows as unknown as ArticleRow[], total: countRow.c };
   }
   updateArticle(workspaceId: string, id: string, fields: Partial<ArticleRow>) {
     const sets: string[] = [];
@@ -144,7 +144,7 @@ export class Repos {
     sets.push('updated_at = ?');
     vals.push(nowIso());
     vals.push(workspaceId, id);
-    this.db.prepare(`UPDATE articles SET ${sets.join(', ')} WHERE workspace_id = ? AND id = ?`).run(...vals);
+    this.db.prepare(`UPDATE articles SET ${sets.join(', ')} WHERE workspace_id = ? AND id = ?`).run(...(vals as never[]));
   }
   deleteArticle(workspaceId: string, id: string) {
     this.db.prepare('DELETE FROM articles WHERE workspace_id = ? AND id = ?').run(workspaceId, id);
@@ -174,10 +174,10 @@ export class Repos {
     return row;
   }
   listVersions(articleId: string): VersionRow[] {
-    return this.db.prepare('SELECT * FROM article_versions WHERE article_id = ? ORDER BY version_no DESC').all(articleId) as VersionRow[];
+    return this.db.prepare('SELECT * FROM article_versions WHERE article_id = ? ORDER BY version_no DESC').all(articleId) as unknown as VersionRow[];
   }
   findVersion(versionId: string): VersionRow | null {
-    return this.db.prepare('SELECT * FROM article_versions WHERE id = ?').get(versionId) as VersionRow | null ?? null;
+    return this.db.prepare('SELECT * FROM article_versions WHERE id = ?').get(versionId) as unknown as VersionRow | null ?? null;
   }
   lastVersionTime(articleId: string): string | null {
     const r = this.db.prepare('SELECT created_at FROM article_versions WHERE article_id = ? ORDER BY version_no DESC LIMIT 1')
@@ -186,7 +186,7 @@ export class Repos {
   }
 
   // ---------- reports ----------
-  createReport(workspaceId: string, type: string, payload: unknown, articleId?: string, userId?: string): ReportRow {
+  createReport(workspaceId: string, type: string, payload: unknown, articleId?: string | null, userId?: string | null): ReportRow {
     const row: ReportRow = {
       id: newId(), workspace_id: workspaceId, article_id: articleId ?? null, type,
       payload_json: JSON.stringify(payload), created_at: nowIso(), created_by: userId ?? null,
@@ -198,10 +198,10 @@ export class Repos {
   listReports(workspaceId: string, type?: string, limit = 50): ReportRow[] {
     return (type
       ? this.db.prepare('SELECT * FROM reports WHERE workspace_id = ? AND type = ? ORDER BY created_at DESC LIMIT ?').all(workspaceId, type, limit)
-      : this.db.prepare('SELECT * FROM reports WHERE workspace_id = ? ORDER BY created_at DESC LIMIT ?').all(workspaceId, limit)) as ReportRow[];
+      : this.db.prepare('SELECT * FROM reports WHERE workspace_id = ? ORDER BY created_at DESC LIMIT ?').all(workspaceId, limit)) as unknown as ReportRow[];
   }
   findReport(workspaceId: string, id: string): ReportRow | null {
-    return this.db.prepare('SELECT * FROM reports WHERE id = ? AND workspace_id = ?').get(id, workspaceId) as ReportRow | null ?? null;
+    return this.db.prepare('SELECT * FROM reports WHERE id = ? AND workspace_id = ?').get(id, workspaceId) as unknown as ReportRow | null ?? null;
   }
 
   // ---------- briefs ----------
@@ -220,13 +220,13 @@ export class Repos {
       vals.push(v);
     }
     vals.push(workspaceId, id);
-    this.db.prepare(`UPDATE briefs SET ${sets.join(', ')} WHERE workspace_id = ? AND id = ?`).run(...vals);
+    this.db.prepare(`UPDATE briefs SET ${sets.join(', ')} WHERE workspace_id = ? AND id = ?`).run(...(vals as never[]));
   }
   findBrief(workspaceId: string, id: string): BriefRow | null {
-    return this.db.prepare('SELECT * FROM briefs WHERE id = ? AND workspace_id = ?').get(id, workspaceId) as BriefRow | null ?? null;
+    return this.db.prepare('SELECT * FROM briefs WHERE id = ? AND workspace_id = ?').get(id, workspaceId) as unknown as BriefRow | null ?? null;
   }
   listBriefs(workspaceId: string): BriefRow[] {
-    return this.db.prepare('SELECT * FROM briefs WHERE workspace_id = ? ORDER BY created_at DESC').all(workspaceId) as BriefRow[];
+    return this.db.prepare('SELECT * FROM briefs WHERE workspace_id = ? ORDER BY created_at DESC').all(workspaceId) as unknown as BriefRow[];
   }
 
   // ---------- secrets ----------

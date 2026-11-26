@@ -29,7 +29,7 @@ const ArticleCreateSchema = z.object({
 
 const ArticlePatchSchema = ArticleCreateSchema.partial();
 
-function rowToJson(a: import('../../db/repos.js').ArticleRow) {
+function rowToJson(a: import('../db/repos.js').ArticleRow) {
   return {
     id: a.id, workspaceId: a.workspace_id, title: a.title, slug: a.slug,
     primaryKeyword: a.primary_keyword, secondaryKeywords: JSON.parse(a.secondary_keywords_json) as string[],

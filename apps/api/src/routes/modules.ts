@@ -58,7 +58,7 @@ export function moduleRoutes(ctx: AppContext) {
       competitorUrls: z.array(z.string().url()).max(3).optional(),
     }).parse(req.body);
     const provider = ctx.ai.resolveProvider(req.params.workspaceId);
-    let competitors = [];
+    let competitors: import('../services/competitorService.js').FetchedPage[] = [];
     if (body.competitorUrls?.length) {
       const fetched = await ctx.competitors.fetchDocs(body.competitorUrls);
       competitors = fetched.pages.filter((p): p is import('../services/competitorService.js').FetchedPage => 'title' in p);
