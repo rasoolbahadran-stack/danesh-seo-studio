@@ -49,5 +49,21 @@ export function authRoutes(ctx: AppContext) {
     res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role, createdAt: user.created_at } });
   }));
 
+  // Change own password (recommended right after first login with the default 1234)
+  r.patch('/me/password', authRequired(ctx.cfg.JWT_SECRET), asyncHandler(async (req, res) => {
+    const body = z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(6, 'رمز جدید حداقل ۶ کاراکتر'),
+    }).parse(req.body);
+    const user = ctx.repos.findUserById(req.user!.id);
+    if (!user) throw ApiError.notFound('کاربر یافت نشد');
+    if (!verifyPassword(body.currentPassword, user.password_hash)) {
+      throw ApiError.badRequest('رمز فعلی نادرست است');
+    }
+    ctx.repos.updateUserPassword(user.id, hashPassword(body.newPassword));
+    ctx.repos.logActivity(null, user.id, 'user.password-change', 'user', user.id, {}, req.ip ?? '');
+    res.json({ ok: true, message: 'رمز عبور با موفقیت تغییر کرد' });
+  }));
+
   return r;
 }

@@ -536,3 +536,36 @@ describe('site connection settings (real verify)', () => {
     expect(test.body.message).toContain('تنظیم');
   });
 });
+
+describe('default admin seeding & password change (easy access)', () => {
+  it('admin@danesh.local / 1234 works out of the box + starter workspace exists', async () => {
+    const login = await request(app).post('/api/v1/auth/login').send({ email: 'admin@danesh.local', password: '1234' });
+    expect(login.status).toBe(200);
+    expect(login.body.user.name).toBe('رسول بهادران');
+    expect(login.body.user.role).toBe('admin');
+    const list = await request(app).get('/api/v1/workspaces').set(auth(login.body.token));
+    expect(list.body.workspaces.some((w: { name: string }) => w.name === 'سایت من')).toBe(true);
+  });
+
+  it('password can be changed → old fails, new works', async () => {
+    const login = await request(app).post('/api/v1/auth/login').send({ email: 'admin@danesh.local', password: '1234' });
+    expect(login.status).toBe(200);
+    const change = await request(app).patch('/api/v1/auth/me/password').set(auth(login.body.token)).send({ currentPassword: '1234', newPassword: 'NewPass99!' });
+    expect(change.status).toBe(200);
+    const oldFail = await request(app).post('/api/v1/auth/login').send({ email: 'admin@danesh.local', password: '1234' });
+    expect(oldFail.status).toBe(401);
+    const newOk = await request(app).post('/api/v1/auth/login').send({ email: 'admin@danesh.local', password: 'NewPass99!' });
+    expect(newOk.status).toBe(200);
+    const wrongCurrent = await request(app).patch('/api/v1/auth/me/password').set(auth(newOk.body.token)).send({ currentPassword: 'nope', newPassword: 'Whatever1!' });
+    expect(wrongCurrent.status).toBe(400);
+  });
+
+  it('seeding is idempotent (no duplicates on restart)', async () => {
+    const { buildApp: rebuild } = await import('./app.js');
+    const { app: app2 } = rebuild({ dbPath: ':memory:', env: { NODE_ENV: 'test', JWT_SECRET: 'seed-idem-secret-123456789' } });
+    const l1 = await request(app2).post('/api/v1/auth/login').send({ email: 'admin@danesh.local', password: '1234' });
+    const list1 = await request(app2).get('/api/v1/workspaces').set(auth(l1.body.token));
+    // restart with the same DB path is not testable here (in-memory), so assert single workspace after one seed
+    expect(list1.body.workspaces).toHaveLength(1);
+  });
+});

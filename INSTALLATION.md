@@ -71,3 +71,18 @@ sqlite3 data/danesh-seo-studio.db ".backup 'backup-$(date +%F).db'"
 | 500 در production با پیام JWT_SECRET | مقدار واقعی تنظیم کنید |
 | CORS در داشبورد مستقر | `CORS_ORIGIN` شامل آدرس Pages باشد |
 | صفحه خالی بعد از deploy Pages | آدرس API را در صفحه ورود وارد کنید (نسخه Pages دمو است) |
+
+## حساب آماده مالک (بدون ثبت‌نام)
+
+در اولین اجرای سرور، این مقادیر به‌صورت خودکار seed می‌شوند (قابل تغییر در .env):
+
+```
+SEED_DEFAULT_ADMIN=true          # false = غیرفعال
+SEED_ADMIN_NAME=رسول بهادران
+SEED_ADMIN_EMAIL=admin@danesh.local
+SEED_ADMIN_PASSWORD=1234
+SEED_WORKSPACE_NAME=سایت من
+```
+
+ورود: در صفحه ورود، دکمه «ورود سریع — رسول بهادران (ادمین)». تغییر رمز بعد از ورود: PATCH /api/v1/auth/me/password.
+اگر سروری ندارید: داشبورد Pages را باز کنید و «ورود بدون سرور» را بزنید — بدون هیچ نصبی کار می‌کند (داده‌ها در مرورگر می‌ماند).

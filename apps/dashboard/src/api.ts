@@ -1,7 +1,24 @@
-/** API client — base URL configurable (needed for GitHub Pages demo mode). */
+/** API client — with two modes:
+ *  - 'server': talks to the REST backend (base URL configurable)
+ *  - 'local' : zero-setup mode — everything runs in the browser via localDb
+ */
 
+const MODE_KEY = 'danesh_mode';
 const BASE_KEY = 'danesh_api_base';
 const TOKEN_KEY = 'danesh_token';
+
+export type ClientMode = 'server' | 'local';
+
+export function getMode(): ClientMode {
+  return (localStorage.getItem(MODE_KEY) as ClientMode) ?? 'server';
+}
+
+export function setMode(mode: ClientMode) {
+  localStorage.setItem(MODE_KEY, mode);
+}
+
+/** Alias used by App shell (same semantics as getMode). */
+export const getApiMode = getMode;
 
 export function getApiBase(): string {
   return localStorage.getItem(BASE_KEY) ?? (import.meta.env.VITE_API_BASE ?? '');
@@ -33,7 +50,14 @@ export class ApiError extends Error {
   }
 }
 
+import { handleLocal } from './lib/localDb.js';
+
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
+  if (getMode() === 'local') {
+    // Local mode runs synchronously in the browser — same shapes as the REST API
+    return await Promise.resolve(handleLocal(method, path, body) as T);
+  }
+
   const base = getApiBase();
   const headers: Record<string, string> = {};
   const token = getToken();
@@ -47,7 +71,7 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new ApiError(0, 'NETWORK', 'اتصال به سرور برقرار نشد. آدرس API را در تنظیمات بررسی کنید.');
+    throw new ApiError(0, 'NETWORK', 'اتصال به سرور برقرار نشد. آدرس API را در تنظیمات بررسی کنید — یا از دکمه «ورود بدون سرور» استفاده کنید.');
   }
   if (res.status === 401 && token) {
     setToken(null);
@@ -95,3 +119,6 @@ export interface Version {
 }
 
 export interface AiStatus { configured: boolean; provider: string; model: string | null; maskedKey: string | null; source: string }
+
+/** Default owner account seeded by the API (server mode). */
+export const DEFAULT_ADMIN = { email: 'admin@danesh.local', password: '1234' };

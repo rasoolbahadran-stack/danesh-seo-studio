@@ -45,6 +45,9 @@ export class Repos {
   findUserById(id: string): UserRow | null {
     return this.db.prepare('SELECT * FROM users WHERE id = ?').get(id) as unknown as UserRow | null ?? null;
   }
+  updateUserPassword(id: string, passwordHash: string) {
+    this.db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(passwordHash, id);
+  }
 
   // ---------- workspaces & members ----------
   createWorkspace(ownerId: string, data: { name: string; domain?: string; lang?: string; cms?: string }): WorkspaceRow {

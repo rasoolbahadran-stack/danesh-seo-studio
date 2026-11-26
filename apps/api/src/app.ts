@@ -25,6 +25,7 @@ import { keywordRoutes } from './routes/keywords.js';
 import { moduleRoutes } from './routes/modules.js';
 import { connectionRoutes } from './routes/connection.js';
 import { publicRoutes } from './routes/public.js';
+import { seedDefaultAdmin } from './services/seedService.js';
 import type { AppContext } from './routes/context.js';
 
 export interface BuildAppOptions {
@@ -50,6 +51,16 @@ export function buildApp(opts: BuildAppOptions = {}): { app: Express; ctx: AppCo
     briefs: new BriefService(),
   };
   ctx.keywords.setEncryptionKey(ctx.encryptionKey);
+
+  // Seed the easy-access owner account (رسول بهادران / 1234) + starter workspace
+  const seedInfo = seedDefaultAdmin(ctx);
+  if (seedInfo.created) {
+    logger.info('Default admin account ready', {
+      email: seedInfo.email,
+      workspace: seedInfo.workspaceName,
+      note: 'رمز پیش‌فرض (1234) را با PATCH /api/v1/auth/me/password تغییر دهید یا SEED_ADMIN_PASSWORD را در .env تنظیم کنید',
+    });
+  }
 
   const app = express();
   app.disable('x-powered-by');
