@@ -143,7 +143,7 @@
 | نقش‌ها owner/admin/editor/viewer | COMPLETED | middleware + Integration | ✅ |
 | WordPress plugin (قرارداد REST + push) | COMPLETED | Unit connectors (mock) | ✅ |
 | تنظیمات اتصال سایت در پنل (کلیدها رمزنگاری + تست واقعی) | COMPLETED | Integration (masked + test) | ✅ |
-| Astro / Next.js integration | COMPLETED | کد + README | بدون تست E2E روی پروژه واقعی Astro/Next — PARTIALLY در عملکرد زنده |
+| Astro / Next.js integration | PARTIALLY COMPLETED | کد + README | بدون تست E2E روی پروژه واقعی Astro/Next — تست unit-level سبز |
 | HTML Widget + share token | COMPLETED | Integration (public endpoint) | ✅ |
 | Webhook امضاشده HMAC | COMPLETED | Unit | ✅ |
 | تأیید مالکیت دامنه (متا/فایل) | COMPLETED | Unit | ✅ |
@@ -175,9 +175,10 @@
 | GitHub Pages (دمو) | COMPLETED | deploy-pages.yml + base path |
 | مستندات ۱۰+ فایل | COMPLETED | این مخزن |
 
-## جمع‌بندی وضعیت
+## جمع‌بندی وضعیت (تعداد واقعی ردیف‌های جدول بالا)
 
-- **COMPLETED**: ۶۱ مورد
-- **PARTIALLY COMPLETED**: ۲ مورد (Astro/Next تست زنده روی پروژه نمونه؛ Crawl چندصفحه‌ای کامل)
-- **BLOCKED (نیازمند کلید سرویس پولی/شبکه)**: ۲ مورد (حجم جست‌وجو و سختی واقعی از DataForSEO؛ SERP واقعی — providerها آماده اتصال هستند)
-- **FAILED**: ۰
+- **COMPLETED: ۹۵ مورد**
+- **PARTIALLY COMPLETED: ۲ مورد** (Astro/Next تست زنده روی پروژه نمونه؛ Crawl چندصفحه‌ای کامل)
+- **BLOCKED (نیازمند کلید سرویس پولی): ۳ مورد** (حجم جست‌وجو واقعی، سختی واقعی، SERP واقعی — providerها آماده اتصال هستند و بدون کلید وضعیت شفاف not_configured برمی‌گردانند)
+- **TODO: ۱ مورد** (E2E مرورگر با Playwright — ROADMAP)
+- **FAILED: ۰**
